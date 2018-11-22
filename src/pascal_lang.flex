@@ -1,24 +1,63 @@
+import java_cup.runtime.Symbol;
+import java_cup.runtime.ComplexSymbolFactory;
+import java_cup.runtime.ComplexSymbolFactory.Location;
+
 %%
 
+%public
+%class Lexer
+%cup
+%implements sym, minijava.Constants
+%char
+%line
+%column
+
 %{
+    StringBuffer string = new StringBuffer();
+
+    public Lexer(java.io.Reader in, ComplexSymbolFactory sf){
+    	this(in);
+    	symbolFactory = sf;
+    }
+
+    ComplexSymbolFactory symbolFactory;
+
+    private Symbol symbol(String name, int sym) {
+        return symbolFactory.newSymbol(name, sym, new Location(yyline+1,yycolumn+1,yychar), new Location(yyline+1,yycolumn+yylength(),yychar+yylength()));
+    }
+
+    private Symbol symbol(String name, int sym, Object val) {
+        Location left = new Location(yyline+1,yycolumn+1,yychar);
+        Location right= new Location(yyline+1,yycolumn+yylength(), yychar+yylength());
+        return symbolFactory.newSymbol(name, sym, left, right,val);
+    }
+
+    private Symbol symbol(String name, int sym, Object val,int buflength) {
+        Location left = new Location(yyline+1,yycolumn+yylength()-buflength,yychar+yylength()-buflength);
+        Location right= new Location(yyline+1,yycolumn+yylength(), yychar+yylength());
+        return symbolFactory.newSymbol(name, sym, left, right,val);
+    }
 
     private void imprimir(String descricao, String lexema) {
         System.out.println(lexema + " - " + descricao);
     }
 
+    private void error(String message) {
+        System.out.println("Error at line "+(yyline+1)+", column "+(yycolumn+1)+" : "+message);
+    }
+
 %}
 
-%standalone
-%class PascalAnalizer
-%line
-%column
+%eofval{
+    return symbolFactory.newSymbol("EOF", EOF, new Location(yyline+1,yycolumn+1,yychar), new Location(yyline+1,yycolumn+1,yychar+1));
+%eofval}
+
 
 ATTRIBUITION = :=
 RELATIONAL = [>|<|>=|<=|=|<>]
 INTEGER = [\-|\+]?[0]|[1-9][0-9]*
 REAL = [\-|\+|]?[0-9]+[\.][0-9]+
 ARITHMETIC = [\+|\-|\*|/]
-TERMINATE = [;|.|:]
 STRING = \'.* \'
 VARIABLE = [_|a-z|A-Z][a-z|A-Z|0-9|_]*
 COMMENT = \{.*\}|\/\/.*
@@ -34,21 +73,18 @@ POINTER = \^{VARIABLE}
     asm                   {imprimir("Palavra reservada asm", yytext());}
     case                   {imprimir("Palavra reservada case", yytext());}
     const                   {imprimir("Palavra reservada const", yytext());}
-    constructor                   {imprimir("Palavra reservada constructor", yytext());}
-    destructor                   {imprimir("Palavra reservada destructor", yytext());}
     div                   {imprimir("Palavra reservada div", yytext());}
     do                   {imprimir("Palavra reservada do", yytext());}
     downto                   {imprimir("Palavra reservada downto", yytext());}
-    egin                   {imprimir("Palavra reservada egin", yytext());}
+    begin                   {symbol("begin", BEGIN);}
     eles                   {imprimir("Palavra reservada eles", yytext());}
-    end                   {imprimir("Palavra reservada end", yytext());}
+    end                   {symbol("end", END);}
     file                   {imprimir("Palavra reservada file", yytext());}
     for                   {imprimir("Palavra reservada for", yytext());}
     foward                   {imprimir("Palavra reservada foward", yytext());}
     function                   {imprimir("Palavra reservada function", yytext());}
     goto                   {imprimir("Palavra reservada goto", yytext());}
     if                   {imprimir("Palavra reservada if", yytext());}
-    implementation                   {imprimir("Palavra reservada implementation", yytext());}
     in                   {imprimir("Palavra reservada in", yytext());}
     inline                   {imprimir("Palavra reservada inline", yytext());}
     interface                   {imprimir("Palavra reservada interface", yytext());}
@@ -61,7 +97,7 @@ POINTER = \^{VARIABLE}
     or                   {imprimir("Palavra reservada or", yytext());}
     packed                   {imprimir("Palavra reservada packed", yytext());}
     procedure                   {imprimir("Palavra reservada procedure", yytext());}
-    program                   {imprimir("Palavra reservada program", yytext());}
+    program                   {return symbol("program", PROGRAM);}
     record                   {imprimir("Palavra reservada record", yytext());}
     repeat                   {imprimir("Palavra reservada repeat", yytext());}
     set                   {imprimir("Palavra reservada set", yytext());}
@@ -81,18 +117,14 @@ POINTER = \^{VARIABLE}
     xor                   {imprimir("Palavra reservada xor", yytext());}
 
     absolute                   {imprimir("Modificadores absolute", yytext());}
-    abstract                   {imprimir("Modificadores abstract", yytext());}
     alias                   {imprimir("Modificadores alias", yytext());}
     assembler                   {imprimir("Modificadores assembler", yytext());}
-    bitpacked                   {imprimir("Modificadores bitpacked", yytext());}
     break                   {imprimir("Modificadores break", yytext());}
     cdecl                   {imprimir("Modificadores cdecl", yytext());}
     continue                   {imprimir("Modificadores continue", yytext());}
     cppdecl                   {imprimir("Modificadores cppdecl", yytext());}
     cvar                   {imprimir("Modificadores cvar", yytext());}
     default                   {imprimir("Modificadores default", yytext());}
-    deprecated                   {imprimir("Modificadores deprecated", yytext());}
-    dynamic                   {imprimir("Modificadores dynamic", yytext());}
     enumerator                   {imprimir("Modificadores enumerator", yytext());}
     experimental                   {imprimir("Modificadores experimental", yytext());}
     export                   {imprimir("Modificadores export", yytext());}
@@ -102,7 +134,6 @@ POINTER = \^{VARIABLE}
     forward                   {imprimir("Modificadores forward", yytext());}
     generic                   {imprimir("Modificadores generic", yytext());}
     helper                   {imprimir("Modificadores helper", yytext());}
-    implements                   {imprimir("Modificadores implements", yytext());}
     index                   {imprimir("Modificadores index", yytext());}
     interrupt                   {imprimir("Modificadores interrupt", yytext());}
     iocheck                   {imprimir("Modificadores iocheck", yytext());}
@@ -119,9 +150,6 @@ POINTER = \^{VARIABLE}
     override                   {imprimir("Modificadores override", yytext());}
     pascal                   {imprimir("Modificadores pascal", yytext());}
     platform                   {imprimir("Modificadores platform", yytext());}
-    private                   {imprimir("Modificadores private", yytext());}
-    protected                   {imprimir("Modificadores protected", yytext());}
-    public                   {imprimir("Modificadores public", yytext());}
     published                   {imprimir("Modificadores published", yytext());}
     read                   {imprimir("Modificadores read", yytext());}
     register                   {imprimir("Modificadores register", yytext());}
@@ -131,7 +159,6 @@ POINTER = \^{VARIABLE}
     saveregisters                   {imprimir("Modificadores saveregisters", yytext());}
     softfloat                   {imprimir("Modificadores softfloat", yytext());}
     specialize                   {imprimir("Modificadores specialize", yytext());}
-    static                   {imprimir("Modificadores static", yytext());}
     stdcall                   {imprimir("Modificadores stdcall", yytext());}
     stored                   {imprimir("Modificadores stored", yytext());}
     strict                   {imprimir("Modificadores strict", yytext());}
@@ -165,6 +192,10 @@ POINTER = \^{VARIABLE}
     comp                   {imprimir("Tipos_Reais comp", yytext());}
     currency                   {imprimir("Tipos_Reais currency", yytext());}
 
+    ';'                     {symbol(";", SEMICOLUN);}
+    ','                     {symbol(",", COMMA);}
+    '.'                     {symbol(".", POINT);}
+    '+'                     {symbol("plus", PLUS);}
 
     {WHITESPACE}          {}
     {VARIABLE}            {imprimir("Identificador", yytext());}
@@ -175,8 +206,9 @@ POINTER = \^{VARIABLE}
     {INTEGER}             {imprimir("Numero Inteiro", yytext());}
     {REAL}                {imprimir("Numero Real", yytext());}
     {ARITHMETIC}          {imprimir("Simbolo Aritimetico", yytext());}
-    {TERMINATE}           {imprimir("Simbolo Terminal", yytext());}
     {STRING}              {imprimir("String", yytext());}
     {POINTER}             {imprimir("Ponteiro", yytext());}
-    [^]                  { throw new Error("Illegal character: "+yytext()+" at line "+(yyline+1)+", column "+(yycolumn+1) );}
 }
+
+<<EOF>> { return new Symbol( sym.EOF ); }
+[^]     { throw new Error("Illegal character: "+yytext()+" at line "+(yyline+1)+", column "+(yycolumn+1) );}

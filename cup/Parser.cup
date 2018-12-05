@@ -1,3 +1,5 @@
+package Compiler;
+
 
 import java_cup.runtime.*;
 import java.util.*;
@@ -12,13 +14,21 @@ parser code {:
         System.out.println("Error - " + message);
         System.exit(-1);
     }
+
+    public static void main(String[] args) {
+        try{
+            new Parser(new Scanner(new FileReader(args[0])));
+        }catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 :};
 
 
-terminal PLUS, POINT, COMMA, SEMICOLUN, BEGIN, AND, PROGRAM;
+terminal PLUS, POINT, COMMA, SEMICOLUN, BEGIN, END, PROGRAM;
 non terminal program, program_name, statements, statement;
 
 start with program;
 
 
-program ::= PROGRAM program_name statement BEGIN statements AND POINT;
+program ::= PROGRAM program_name statement BEGIN statements END POINT;

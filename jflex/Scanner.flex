@@ -1,56 +1,30 @@
-import java_cup.runtime.Symbol;
-import java_cup.runtime.ComplexSymbolFactory;
+package Compiler;
+
+import java_cup.runtime.*;
+import java.io.Reader;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 
 %%
 
 %public
-%class Lexer
+%class Scanner
 %cup
-%implements sym, minijava.Constants
-%char
 %line
 %column
 
 %{
-    StringBuffer string = new StringBuffer();
-
-    public Lexer(java.io.Reader in, ComplexSymbolFactory sf){
-    	this(in);
-    	symbolFactory = sf;
-    }
-
-    ComplexSymbolFactory symbolFactory;
-
-    private Symbol symbol(String name, int sym) {
-        return symbolFactory.newSymbol(name, sym, new Location(yyline+1,yycolumn+1,yychar), new Location(yyline+1,yycolumn+yylength(),yychar+yylength()));
-    }
-
-    private Symbol symbol(String name, int sym, Object val) {
-        Location left = new Location(yyline+1,yycolumn+1,yychar);
-        Location right= new Location(yyline+1,yycolumn+yylength(), yychar+yylength());
-        return symbolFactory.newSymbol(name, sym, left, right,val);
-    }
-
-    private Symbol symbol(String name, int sym, Object val,int buflength) {
-        Location left = new Location(yyline+1,yycolumn+yylength()-buflength,yychar+yylength()-buflength);
-        Location right= new Location(yyline+1,yycolumn+yylength(), yychar+yylength());
-        return symbolFactory.newSymbol(name, sym, left, right,val);
-    }
-
     private void imprimir(String descricao, String lexema) {
         System.out.println(lexema + " - " + descricao);
     }
+    private Symbol symbol(int type) {
+      return new Symbol(type, yyline, yycolumn);
+    }
 
-    private void error(String message) {
-        System.out.println("Error at line "+(yyline+1)+", column "+(yycolumn+1)+" : "+message);
+    private Symbol symbol(int type, Object value) {
+      return new Symbol(type, yyline, yycolumn, value);
     }
 
 %}
-
-%eofval{
-    return symbolFactory.newSymbol("EOF", EOF, new Location(yyline+1,yycolumn+1,yychar), new Location(yyline+1,yycolumn+1,yychar+1));
-%eofval}
 
 
 ATTRIBUITION = :=
@@ -76,9 +50,9 @@ POINTER = \^{VARIABLE}
     div                   {imprimir("Palavra reservada div", yytext());}
     do                   {imprimir("Palavra reservada do", yytext());}
     downto                   {imprimir("Palavra reservada downto", yytext());}
-    begin                   {symbol("begin", BEGIN);}
+    begin                   {return symbol(sym.BEGIN);}
     eles                   {imprimir("Palavra reservada eles", yytext());}
-    end                   {symbol("end", END);}
+    end                   {return symbol(sym.END);}
     file                   {imprimir("Palavra reservada file", yytext());}
     for                   {imprimir("Palavra reservada for", yytext());}
     foward                   {imprimir("Palavra reservada foward", yytext());}
@@ -97,7 +71,7 @@ POINTER = \^{VARIABLE}
     or                   {imprimir("Palavra reservada or", yytext());}
     packed                   {imprimir("Palavra reservada packed", yytext());}
     procedure                   {imprimir("Palavra reservada procedure", yytext());}
-    program                   {return symbol("program", PROGRAM);}
+    program                   {return  symbol(sym.PROGRAM);}
     record                   {imprimir("Palavra reservada record", yytext());}
     repeat                   {imprimir("Palavra reservada repeat", yytext());}
     set                   {imprimir("Palavra reservada set", yytext());}
@@ -192,10 +166,10 @@ POINTER = \^{VARIABLE}
     comp                   {imprimir("Tipos_Reais comp", yytext());}
     currency                   {imprimir("Tipos_Reais currency", yytext());}
 
-    ';'                     {symbol(";", SEMICOLUN);}
-    ','                     {symbol(",", COMMA);}
-    '.'                     {symbol(".", POINT);}
-    '+'                     {symbol("plus", PLUS);}
+    ';'                     {return symbol(sym.SEMICOLUN);}
+    ','                     {return symbol(sym.COMMA);}
+    '.'                     {return symbol(sym.POINT);}
+    '+'                     {return symbol(sym.PLUS);}
 
     {WHITESPACE}          {}
     {VARIABLE}            {imprimir("Identificador", yytext());}
@@ -210,5 +184,5 @@ POINTER = \^{VARIABLE}
     {POINTER}             {imprimir("Ponteiro", yytext());}
 }
 
-<<EOF>> { return new Symbol( sym.EOF ); }
+<<EOF>> { return new Symbol(sym.EOF); }
 [^]     { throw new Error("Illegal character: "+yytext()+" at line "+(yyline+1)+", column "+(yycolumn+1) );}

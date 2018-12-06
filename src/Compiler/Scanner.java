@@ -3,7 +3,6 @@
 package Compiler;
 
 import java_cup.runtime.*;
-import java.io.Reader;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 
 
@@ -804,16 +803,19 @@ public class Scanner implements java_cup.runtime.Scanner {
 
   /* user code: */
     private void imprimir(String descricao, String lexema) {
-        System.out.println(lexema + " - " + descricao);
+            System.out.println(lexema + " - " + descricao);
     }
-    private Symbol symbol(int type) {
-      return new Symbol(type, yyline, yycolumn);
+	public Scanner(java.io.Reader r, ComplexSymbolFactory sf){
+        this(r);
+        this.sf=sf;
     }
-
-    private Symbol symbol(int type, Object value) {
-      return new Symbol(type, yyline, yycolumn, value);
-    }
-
+	public Symbol symbol(String plaintext,int code){
+	    return sf.newSymbol(plaintext,code,new Location("",yyline+1, yycolumn +1,yychar), new Location("",yyline+1,yycolumn+yylength(),yychar));
+	}
+	public Symbol symbol(String plaintext,int code,Integer number){
+	    return sf.newSymbol(plaintext,code,new Location("",yyline+1, yycolumn +1,yychar), new Location("",yyline+1,yycolumn+yylength(),yychar),number);
+	}
+	private ComplexSymbolFactory sf;
 
 
   /**
@@ -1076,6 +1078,8 @@ public class Scanner implements java_cup.runtime.Scanner {
     while (true) {
       zzMarkedPosL = zzMarkedPos;
 
+      yychar+= zzMarkedPosL-zzStartRead;
+
       boolean zzR = false;
       int zzCh;
       int zzCharCount;
@@ -1195,9 +1199,8 @@ public class Scanner implements java_cup.runtime.Scanner {
       if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
         zzAtEOF = true;
             zzDoEOF();
-              {
-                return new Symbol(sym.EOF);
-              }
+          {     return sf.newSymbol("EOF",sym.EOF);
+ }
       }
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
@@ -1242,7 +1245,7 @@ public class Scanner implements java_cup.runtime.Scanner {
             // fall through
           case 143: break;
           case 9: 
-            { return symbol(sym.PLUS);
+            { return symbol("Plus", sym.PLUS);
             } 
             // fall through
           case 144: break;
@@ -1292,17 +1295,17 @@ public class Scanner implements java_cup.runtime.Scanner {
             // fall through
           case 153: break;
           case 19: 
-            { return symbol(sym.POINT);
+            { return symbol("Point", sym.POINT);
             } 
             // fall through
           case 154: break;
           case 20: 
-            { return symbol(sym.SEMICOLUN);
+            { return symbol("Semicolumn", sym.SEMICOLUN);
             } 
             // fall through
           case 155: break;
           case 21: 
-            { return symbol(sym.COMMA);
+            { return symbol("Plus", sym.COMMA);
             } 
             // fall through
           case 156: break;
@@ -1352,7 +1355,7 @@ public class Scanner implements java_cup.runtime.Scanner {
             // fall through
           case 165: break;
           case 31: 
-            { return symbol(sym.END);
+            { return symbol("End", sym.END);
             } 
             // fall through
           case 166: break;
@@ -1517,7 +1520,7 @@ public class Scanner implements java_cup.runtime.Scanner {
             // fall through
           case 198: break;
           case 64: 
-            { return symbol(sym.BEGIN);
+            { return symbol("Begin", sym.BEGIN);
             } 
             // fall through
           case 199: break;
@@ -1687,7 +1690,7 @@ public class Scanner implements java_cup.runtime.Scanner {
             // fall through
           case 232: break;
           case 98: 
-            { return  symbol(sym.PROGRAM);
+            { return  symbol("Program", sym.PROGRAM);
             } 
             // fall through
           case 233: break;

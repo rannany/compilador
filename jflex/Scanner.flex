@@ -14,182 +14,130 @@ import java_cup.runtime.ComplexSymbolFactory.Location;
 
 
 %{
-    private void imprimir(String descricao, String lexema) {
-            System.out.println(lexema + " - " + descricao);
-    }
-	public Scanner(java.io.Reader r, ComplexSymbolFactory sf){
+
+    public Scanner(java.io.Reader r, ComplexSymbolFactory sf){
         this(r);
         this.sf=sf;
     }
-	public Symbol symbol(String plaintext,int code){
-	    return sf.newSymbol(plaintext,code,new Location("",yyline+1, yycolumn +1,yychar), new Location("",yyline+1,yycolumn+yylength(),yychar));
-	}
-	public Symbol symbol(String plaintext,int code,Integer number){
-	    return sf.newSymbol(plaintext,code,new Location("",yyline+1, yycolumn +1,yychar), new Location("",yyline+1,yycolumn+yylength(),yychar),number);
-	}
+    private void imprimir(String descricao, String lexema) {
+        System.out.println(lexema + " - " + descricao);
+    }
+    private Symbol symbol(int type) {
+       return new Symbol(type, yyline, yycolumn);
+    }
+
+    private Symbol symbol(int type, Object val) {
+       return new Symbol(type, yyline, yycolumn, val);
+    }
+
+    public String current_lexeme(){
+          int l = yyline+1;
+          int c = yycolumn+1;
+          return "line: " + l + ", column: " + c + ", with : '"+yytext()+"')";
+    }
 	private ComplexSymbolFactory sf;
 %}
 
-%eofval{
-    return sf.newSymbol("EOF",sym.EOF);
-%eofval}
 
+digit = [0-9]
+letter = [A-Za-z]
+NQUOTE = [^']
+leftbrace = \{
+rightbrace = \}
+nonrightbrace = [^}]
+comment_body = {nonrightbrace}*
+comment = {leftbrace}{comment_body}{rightbrace}
+string_character   = '({NQUOTE}|'')+'
+lineTerminator = \r|\n|\r\ns
+whitespace = {lineTerminator} | [ \t\f]
 
-ATTRIBUITION = :=
-RELATIONAL = [>|<|>=|<=|=|<>]
-INTEGER = [\-|\+]?[0]|[1-9][0-9]*
-REAL = [\-|\+|]?[0-9]+[\.][0-9]+
-ARITHMETIC = [\+|\-|\*|/]
-STRING = \'.* \'
-VARIABLE = [_|a-z|A-Z][a-z|A-Z|0-9|_]*
-COMMENT = \{.*\}|\/\/.*
-DELIMITER = [(|)|,|\[|\]|[\.\.]]
-WHITESPACE = [\n| |\t|\r]
-POINTER = \^{VARIABLE}
 
 %%
 
 <YYINITIAL> {
-    and                   {imprimir("Palavra reservada and", yytext());}
-    array                   {imprimir("Palavra reservada array", yytext());}
-    asm                   {imprimir("Palavra reservada asm", yytext());}
-    case                   {imprimir("Palavra reservada case", yytext());}
-    const                   {imprimir("Palavra reservada const", yytext());}
-    div                   {imprimir("Palavra reservada div", yytext());}
-    do                   {imprimir("Palavra reservada do", yytext());}
-    downto                   {imprimir("Palavra reservada downto", yytext());}
-    begin                   {return symbol("Begin", sym.BEGIN);}
-    eles                   {imprimir("Palavra reservada eles", yytext());}
-    end                   {return symbol("End", sym.END);}
-    file                   {imprimir("Palavra reservada file", yytext());}
-    for                   {imprimir("Palavra reservada for", yytext());}
-    foward                   {imprimir("Palavra reservada foward", yytext());}
-    function                   {imprimir("Palavra reservada function", yytext());}
-    goto                   {imprimir("Palavra reservada goto", yytext());}
-    if                   {imprimir("Palavra reservada if", yytext());}
-    in                   {imprimir("Palavra reservada in", yytext());}
-    inline                   {imprimir("Palavra reservada inline", yytext());}
-    interface                   {imprimir("Palavra reservada interface", yytext());}
-    label                   {imprimir("Palavra reservada label", yytext());}
-    mod                   {imprimir("Palavra reservada mod", yytext());}
-    nil                   {imprimir("Palavra reservada nil", yytext());}
-    not                   {imprimir("Palavra reservada not", yytext());}
-    object                   {imprimir("Palavra reservada object", yytext());}
-    of                   {imprimir("Palavra reservada of", yytext());}
-    or                   {imprimir("Palavra reservada or", yytext());}
-    packed                   {imprimir("Palavra reservada packed", yytext());}
-    procedure                   {imprimir("Palavra reservada procedure", yytext());}
-    program                   {return  symbol("Program", sym.PROGRAM);}
-    record                   {imprimir("Palavra reservada record", yytext());}
-    repeat                   {imprimir("Palavra reservada repeat", yytext());}
-    set                   {imprimir("Palavra reservada set", yytext());}
-    shl                   {imprimir("Palavra reservada shl", yytext());}
-    shr                   {imprimir("Palavra reservada shr", yytext());}
-    string                   {imprimir("Palavra reservada string", yytext());}
-    then                   {imprimir("Palavra reservada then", yytext());}
-    to                   {imprimir("Palavra reservada to", yytext());}
-    type                   {imprimir("Palavra reservada type", yytext());}
-    unit                   {imprimir("Palavra reservada unit", yytext());}
-    until                   {imprimir("Palavra reservada until", yytext());}
-    until                   {imprimir("Palavra reservada until", yytext());}
-    uses                   {imprimir("Palavra reservada uses", yytext());}
-    var                   {imprimir("Palavra reservada var", yytext());}
-    while                   {imprimir("Palavra reservada while", yytext());}
-    with                   {imprimir("Palavra reservada with", yytext());}
-    xor                   {imprimir("Palavra reservada xor", yytext());}
 
-    absolute                   {imprimir("Modificadores absolute", yytext());}
-    alias                   {imprimir("Modificadores alias", yytext());}
-    assembler                   {imprimir("Modificadores assembler", yytext());}
-    break                   {imprimir("Modificadores break", yytext());}
-    cdecl                   {imprimir("Modificadores cdecl", yytext());}
-    continue                   {imprimir("Modificadores continue", yytext());}
-    cppdecl                   {imprimir("Modificadores cppdecl", yytext());}
-    cvar                   {imprimir("Modificadores cvar", yytext());}
-    default                   {imprimir("Modificadores default", yytext());}
-    enumerator                   {imprimir("Modificadores enumerator", yytext());}
-    experimental                   {imprimir("Modificadores experimental", yytext());}
-    export                   {imprimir("Modificadores export", yytext());}
-    external                   {imprimir("Modificadores external", yytext());}
-    far                   {imprimir("Modificadores far", yytext());}
-    far16                   {imprimir("Modificadores far16", yytext());}
-    forward                   {imprimir("Modificadores forward", yytext());}
-    generic                   {imprimir("Modificadores generic", yytext());}
-    helper                   {imprimir("Modificadores helper", yytext());}
-    index                   {imprimir("Modificadores index", yytext());}
-    interrupt                   {imprimir("Modificadores interrupt", yytext());}
-    iocheck                   {imprimir("Modificadores iocheck", yytext());}
-    local                   {imprimir("Modificadores local", yytext());}
-    message                   {imprimir("Modificadores message", yytext());}
-    name                   {imprimir("Modificadores name", yytext());}
-    near                   {imprimir("Modificadores near", yytext());}
-    nodefault                   {imprimir("Modificadores nodefault", yytext());}
-    noreturn                   {imprimir("Modificadores noreturn", yytext());}
-    nostackframe                   {imprimir("Modificadores nostackframe", yytext());}
-    oldfpccall                   {imprimir("Modificadores oldfpccall", yytext());}
-    otherwise                   {imprimir("Modificadores otherwise", yytext());}
-    overload                   {imprimir("Modificadores overload", yytext());}
-    override                   {imprimir("Modificadores override", yytext());}
-    pascal                   {imprimir("Modificadores pascal", yytext());}
-    platform                   {imprimir("Modificadores platform", yytext());}
-    published                   {imprimir("Modificadores published", yytext());}
-    read                   {imprimir("Modificadores read", yytext());}
-    register                   {imprimir("Modificadores register", yytext());}
-    reintroduce                   {imprimir("Modificadores reintroduce", yytext());}
-    result                   {imprimir("Modificadores result", yytext());}
-    safecall                   {imprimir("Modificadores safecall", yytext());}
-    saveregisters                   {imprimir("Modificadores saveregisters", yytext());}
-    softfloat                   {imprimir("Modificadores softfloat", yytext());}
-    specialize                   {imprimir("Modificadores specialize", yytext());}
-    stdcall                   {imprimir("Modificadores stdcall", yytext());}
-    stored                   {imprimir("Modificadores stored", yytext());}
-    strict                   {imprimir("Modificadores strict", yytext());}
-    unaligned                   {imprimir("Modificadores unaligned", yytext());}
-    unimplemented                   {imprimir("Modificadores unimplemented", yytext());}
-    varargs                   {imprimir("Modificadores varargs", yytext());}
-    virtual                   {imprimir("Modificadores virtual", yytext());}
-    write                   {imprimir("Modificadores write", yytext());}
+    /*Palavras reservadas*/
+    "program" { return symbol(sym.PROGRAM, new Integer(yyline + 1)); }
+    "label" { return symbol(sym.LABEL, new Integer(yyline + 1)); }
+    "const" { return symbol(sym.CONST, new Integer(yyline + 1)); }
+    "type" { return symbol(sym.TYPE, new Integer(yyline + 1)); }
+    "var" { return symbol(sym.VAR, new Integer(yyline + 1)); }
+    "forward" { return symbol(sym.FORWARD, new Integer(yyline + 1)); }
+    "begin" { return symbol(sym.BEGIN, new Integer(yyline + 1)); }
+    "end" { return symbol(sym.END, new Integer(yyline + 1)); }
+    "procedure" { return symbol(sym.PROCEDURE, new Integer(yyline + 1)); }
+    "function" { return symbol(sym.FUNCTION, new Integer(yyline + 1)); }
+    "packed" { return symbol(sym.PACKED, new Integer(yyline + 1)); }
+    "array" { return symbol(sym.ARRAY, new Integer(yyline + 1)); }
+    "of" { return symbol(sym.OF, new Integer(yyline + 1)); }
+    "goto" { return symbol(sym.GOTO, new Integer(yyline + 1)); }
+    "while" { return symbol(sym.WHILE, new Integer(yyline + 1)); }
+    "do" { return symbol(sym.DO, new Integer(yyline + 1)); }
+    "repeat" { return symbol(sym.REPEAT, new Integer(yyline + 1)); }
+    "until" { return symbol(sym.UNTIL, new Integer(yyline + 1)); }
+    "for" { return symbol(sym.FOR, new Integer(yyline + 1)); }
+    "to" { return symbol(sym.TO, new Integer(yyline + 1)); }
+    "downto" { return symbol(sym.DOWNTO, new Integer(yyline + 1)); }
+    "if" { return symbol(sym.IF, new Integer(yyline + 1)); }
+    "then" { return symbol(sym.THEN, new Integer(yyline + 1)); }
+    "else" { return symbol(sym.ELSE, new Integer(yyline + 1)); }
+    "case" { return symbol(sym.CASE, new Integer(yyline + 1)); }
+    "with" { return symbol(sym.WITH, new Integer(yyline + 1)); }
+    "nil" { return symbol(sym.NIL, new Integer(yyline + 1)); }
+    "not" { return symbol(sym.NOT, new Integer(yyline + 1)); }
+    "div" { return symbol(sym.DIVEXTENSION, new Integer(yyline + 1)); }
+    "or" { return symbol(sym.OR, new Integer(yyline + 1)); }
+    "and" { return symbol(sym.AND, new Integer(yyline + 1)); }
+    "record" { return symbol(sym.RECORD, new Integer(yyline + 1)); }
+    "set" { return symbol(sym.SET, new Integer(yyline + 1)); }
+    "file" { return symbol(sym.FILE, new Integer(yyline + 1)); }
 
-    integer                   {imprimir("Tipos_Ordinarios integer", yytext());}
-    shortint                   {imprimir("Tipos_Ordinarios shortint", yytext());}
-    smallint                   {imprimir("Tipos_Ordinarios smallint", yytext());}
-    longint                   {imprimir("Tipos_Ordinarios longint", yytext());}
-    longword                   {imprimir("Tipos_Ordinarios longword", yytext());}
-    int64                   {imprimir("Tipos_Ordinarios int64", yytext());}
-    byte                   {imprimir("Tipos_Ordinarios byte", yytext());}
-    word                   {imprimir("Tipos_Ordinarios word", yytext());}
-    cardinal                   {imprimir("Tipos_Ordinarios cardinal", yytext());}
-    qword                   {imprimir("Tipos_Ordinarios qword", yytext());}
-    boolean                   {imprimir("Tipos_Ordinarios boolean", yytext());}
-    bytebool                   {imprimir("Tipos_Ordinarios bytebool", yytext());}
-    wordbool                   {imprimir("Tipos_Ordinarios wordbool", yytext());}
-    longbool                   {imprimir("Tipos_Ordinarios longbool", yytext());}
-    qwordbool                   {imprimir("Tipos_Ordinarios qwordbool", yytext());}
-    char                   {imprimir("Tipos_Ordinarios char", yytext());}
+    /*operadores*/
 
-    real                   {imprimir("Tipos_Reais real", yytext());}
-    single                   {imprimir("Tipos_Reais single", yytext());}
-    double                   {imprimir("Tipos_Reais double", yytext());}
-    extended                   {imprimir("Tipos_Reais extended", yytext());}
-    comp                   {imprimir("Tipos_Reais comp", yytext());}
-    currency                   {imprimir("Tipos_Reais currency", yytext());}
+    "-" { return symbol(sym.MINUS, new Integer(yyline + 1)); }
+    "+" { return symbol(sym.PLUS, new Integer(yyline + 1)); }
+    "/" { return symbol(sym.DIV, new Integer(yyline + 1)); }
+    "*" { return symbol(sym.TIMES, new Integer(yyline + 1)); }
+    "mod" { return symbol(sym.MOD, new Integer(yyline + 1)); }
+    ":" { return symbol(sym.COLON, new Integer(yyline + 1)); }
+    ".." { return symbol(sym.DOUBLEDOT, new Integer(yyline + 1)); }
+    "=" { return symbol(sym.EQUALS, new Integer(yyline + 1)); }
+    "<>" { return symbol(sym.DIFF, new Integer(yyline + 1)); }
+    "<" { return symbol(sym.LESSTHEN, new Integer(yyline + 1)); }
+    "<=" { return symbol(sym.LESSTHENEQUALS, new Integer(yyline + 1)); }
+    ">" { return symbol(sym.GREATERTHEN, new Integer(yyline + 1)); }
+    ">=" { return symbol(sym.GREATERTHENEQUALS, new Integer(yyline + 1)); }
+    "in" { return symbol(sym.IN, new Integer(yyline + 1)); }
+    "^" { return symbol(sym.CIRCUNFLEX, new Integer(yyline + 1)); }
+    "'" { return symbol(sym.SINGLEQUOTE, new Integer(yyline + 1)); }
+    \"	{return symbol(sym.DOUBLEQUOTE, new Integer(yyline + 1));}
 
-    ';'                     {return symbol("Semicolumn", sym.SEMICOLUN);}
-    ','                     {return symbol("Plus", sym.COMMA);}
-    '.'                     {return symbol("Point", sym.POINT);}
-    '+'                     {return symbol("Plus", sym.PLUS);}
 
-    {WHITESPACE}          {}
-    {VARIABLE}            {imprimir("Identificador", yytext());}
-    {DELIMITER}           {imprimir("Delimitador", yytext());}
-    {COMMENT}             {imprimir("Comentario", yytext());}
-    {ATTRIBUITION}        {imprimir("Sinal de Atrinuição", yytext());}
-    {RELATIONAL}          {imprimir("Simbolo Relacional", yytext());}
-    {INTEGER}             {imprimir("Numero Inteiro", yytext());}
-    {REAL}                {imprimir("Numero Real", yytext());}
-    {ARITHMETIC}          {imprimir("Simbolo Aritimetico", yytext());}
-    {STRING}              {imprimir("String", yytext());}
-    {POINTER}             {imprimir("Ponteiro", yytext());}
+    /*separadores*/
+
+    "(" { return symbol(sym.LPARENT); }
+    ")" { return symbol(sym.RPARENT); }
+    "[" { return symbol(sym.LBRACKET); }
+    "]" { return symbol(sym.RBRACKET); }
+    ";" { return symbol(sym.SEMICOLON); }
+    "," { return symbol(sym.COMMA); }
+    "." { return symbol(sym.DOT); }
+
+
+    /*Atribuição*/
+    ":=" { return symbol(sym.ASSIGMENT); }
+
+    '({NQUOTE}|'')*' {return symbol(sym.STRINGCHARACTER);}
+    {digit}+ { return symbol(sym.DIGITSEQUENCE, new String(yytext())); }
+
+    letter { return symbol(sym.LETTER); }
+    {letter} ({letter}|{digit})* { return symbol(sym.IDENTIFIER, new String(yytext())); }
+
+    /* Comentario */
+    {comment} { System.out.println("Comment: " + yytext()); }
+
+    /* Espacos */
+    {whitespace} { }
+
 }
 
-[^]     { throw new Error("Illegal character: "+yytext()+" at line "+(yyline+1)+", column "+(yycolumn+1) );}
